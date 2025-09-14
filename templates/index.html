@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Assistant Bot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        .chat-container {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .chat-message {
+            margin: 10px 0;
+            max-width: 70%;
+            padding: 10px;
+            border-radius: 8px;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+        .chat-message.user {
+            background: #007bff;
+            color: white;
+            margin-left: auto;
+            text-align: right;
+        }
+        .chat-message.bot {
+            background: #e1f5e1;
+            color: black;
+            margin-right: auto;
+            text-align: left;
+        }
+        .chat-input {
+            display: flex;
+            padding: 10px;
+            background: white;
+            border-top: 1px solid #ddd;
+        }
+        .chat-input textarea {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            resize: none;
+            height: 50px;
+        }
+        .chat-input button {
+            padding: 10px;
+            margin-left: 10px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .chat-input button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container" id="chat-container"></div>
+    <div class="chat-input">
+        <textarea id="user-input" placeholder="Type your message..."></textarea>
+        <button onclick="sendMessage()">➤</button>
+    </div>
+
+    <script>
+        const input = document.getElementById("user-input");
+        const chatContainer = document.getElementById("chat-container");
+
+        async function sendMessage() {
+            const message = input.value.trim();
+            if (!message) return;
+
+            // Show user message
+            const userMsg = document.createElement("div");
+            userMsg.className = "chat-message user";
+            userMsg.innerText = message;
+            chatContainer.appendChild(userMsg);
+
+            input.value = "";
+
+            // Send to backend
+            const response = await fetch("/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message })
+            });
+
+            const data = await response.json();
+
+            // Show bot reply
+            const botMsg = document.createElement("div");
+            botMsg.className = "chat-message bot";
+            botMsg.innerText = data.response;
+            chatContainer.appendChild(botMsg);
+
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        // Handle Enter vs Shift+Enter
+        input.addEventListener("keydown", function(e) {
+            if (e.key === "Enter") {
+                if (e.shiftKey) {
+                    // allow newline
+                    return;
+                } else {
+                    e.preventDefault(); // stop newline
+                    sendMessage(); // send
+                }
+            }
+        });
+    </script>
+</body>
+</html>
